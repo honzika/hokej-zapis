@@ -20,3 +20,7 @@ Ověřeno na Android emulátoru (Medium Phone API 36.1) 27. 10. 2026. iOS zatím
 | 14 | Displej | Nechat zápas otevřený | Displej během zápasu nezhasne | neověřeno (emulátor) |
 | 15 | TV scoreboard (demo) | Otevřít `receiver/index.html?demo` | Týmy v barvách, skóre, běžící čas, poslední gól | OK (prohlížeč) |
 | 16 | Unit testy | `./gradlew :composeApp:testDebugUnitTest` | 9/9 zelené | OK |
+| 17 | Cast na Google TV | Ikona Cast → „Televize v obýváku“, spustit zápas, dát góly | TV ukáže receiver „Hokejovy zapis“, skóre a běžící čas; log `CastPublisher` hlásí odeslání každé změny | OK (Chromecast s Google TV, publikovaná app 0E017B79) |
+| 18 | Historie zápasů | Ikona Historie v nastavení; rozkliknout zápas; smazat | Seznam od nejnovějšího, skóre po částech, nedokončené označené; smazání s potvrzením | OK |
+| 19 | Fotbal | Zvolit „Fotbal“, začít zápas, dát gól | 2 poločasy po 45 min, čas běží nahoru, gól s minutou (např. 1'); chip naposledy použitého střelce | OK |
+| 20 | Unit testy (aktuální) | `./gradlew :composeApp:testDebugUnitTest` | 19/19 zelené | OK |
