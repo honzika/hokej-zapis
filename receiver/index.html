@@ -25,18 +25,26 @@
   .clock .period { font-size: 4.5vh; color: var(--muted); margin-top: 1vh; }
   .last { text-align: center; font-size: 4vh; color: var(--muted); min-height: 5vh; }
   .last b { color: var(--fg); }
+  .team .head { display: flex; align-items: center; justify-content: center; gap: 1.5vw; padding: 3vh 2vw 0; }
+  .team .head .name { padding: 0; }
+  .team .logo { height: 9vh; width: 9vh; object-fit: contain; display: none; }
+  .team .logo.show { display: block; }
+  .waiting { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2vh; background: var(--bg); font-size: 5vh; color: var(--muted); }
+  .waiting b { font-size: 8vh; color: var(--fg); }
+  .waiting.hide { display: none; }
 </style>
 </head>
 <body>
 <div class="board">
   <div class="teams">
-    <div class="team"><div class="stripe" style="background:var(--home)"></div><div class="name" id="homeName">Domácí</div><div class="score" id="homeScore">0</div></div>
+    <div class="team"><div class="stripe" style="background:var(--home)"></div><div class="head"><img class="logo" id="homeLogo" alt=""><div class="name" id="homeName">Domácí</div></div><div class="score" id="homeScore">0</div></div>
     <div class="colon">:</div>
-    <div class="team"><div class="stripe" style="background:var(--away)"></div><div class="name" id="awayName">Hosté</div><div class="score" id="awayScore">0</div></div>
+    <div class="team"><div class="stripe" style="background:var(--away)"></div><div class="head"><div class="name" id="awayName">Hosté</div><img class="logo" id="awayLogo" alt=""></div><div class="score" id="awayScore">0</div></div>
   </div>
   <div class="clock"><div class="time" id="time">10:00</div><div class="period" id="period">1. třetina</div></div>
   <div class="last" id="last"></div>
 </div>
+<div class="waiting" id="waiting"><b>Hokejový zápis</b>Čekám na zápas z telefonu…</div>
 <script>
   // Snapshot odpovídá ScoreboardSnapshot v composeApp (cz.hokej.zapis.cast).
   const NAMESPACE = 'urn:x-cast:cz.hokej.zapis';
@@ -55,10 +63,18 @@
     }
   }
 
+  function setLogo(img, src) {
+    img.classList.toggle('show', !!src);
+    if (src && img.getAttribute('src') !== src) img.src = src;
+  }
+
   function render(s) {
     snap = s; receivedAt = performance.now();
     document.documentElement.style.setProperty('--home', s.home.color);
     document.documentElement.style.setProperty('--away', s.away.color);
+    $('waiting').classList.add('hide');
+    setLogo($('homeLogo'), s.home.logo);
+    setLogo($('awayLogo'), s.away.logo);
     $('homeName').textContent = s.home.name;
     $('awayName').textContent = s.away.name;
     setScore($('homeScore'), s.home.score);

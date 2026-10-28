@@ -1,9 +1,18 @@
 package cz.hokej.zapis.model
 
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
+
 enum class Side { HOME, AWAY }
 
 /** Barva je ARGB, aby šla použít v Compose i serializovat pro TV. */
-data class Team(val name: String, val color: Long)
+data class Team(val name: String, val color: Long, val logo: Logo? = null)
+
+/** Zmenšený obrázek loga (max ~160 px), aby se vešel do Cast zprávy. */
+class Logo(val bytes: ByteArray, val mimeType: String) {
+    @OptIn(ExperimentalEncodingApi::class)
+    val dataUrl: String by lazy { "data:$mimeType;base64," + Base64.encode(bytes) }
+}
 
 data class MatchConfig(
     val home: Team,
@@ -21,10 +30,12 @@ data class GoalEvent(
     /** Čas od začátku třetiny, kdy gól padl. */
     val atSec: Int,
     val scorer: String?,
+    /** Skutečný čas (HH:mm), kdy byl gól zapsán. */
+    val clockTime: String? = null,
 )
 
 /** Okamžik ve hře – čas gólu se bere při stisku „+ Gól“, ne až po vyplnění střelce. */
-data class GoalMoment(val period: Int, val atSec: Int)
+data class GoalMoment(val period: Int, val atSec: Int, val clockTime: String? = null)
 
 enum class Phase { READY, RUNNING, PAUSED, PERIOD_END, FINISHED }
 
@@ -56,6 +67,22 @@ val TeamColors: List<Long> = listOf(
 fun formatClock(remainingMs: Long): String {
     val totalSec = ((remainingMs + 999) / 1000).coerceAtLeast(0)
     return "${totalSec / 60}:${(totalSec % 60).toString().padStart(2, '0')}"
+}
+
+/**
+ * Čas ve třetině zadaný ručně: „1:23“, „1.23“ nebo jen číslice „123“ (= 1:23, poslední dvě jsou sekundy).
+ */
+fun parseClock(text: String): Int? {
+    val t = text.trim()
+    if (t.isEmpty()) return null
+    val parts = t.split(':', '.', ',')
+    val (min, sec) = when {
+        parts.size == 2 -> parts[0].ifEmpty { "0" }.toIntOrNull() to parts[1].toIntOrNull()
+        parts.size == 1 && t.all { it.isDigit() } -> t.dropLast(2).ifEmpty { "0" }.toIntOrNull() to t.takeLast(2).toIntOrNull()
+        else -> return null
+    }
+    if (min == null || sec == null || sec > 59) return null
+    return min * 60 + sec
 }
 
 fun formatSec(sec: Int): String = "${sec / 60}:${(sec % 60).toString().padStart(2, '0')}"

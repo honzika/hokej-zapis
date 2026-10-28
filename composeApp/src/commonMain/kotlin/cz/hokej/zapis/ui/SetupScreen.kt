@@ -58,7 +58,10 @@ fun SetupScreen(initial: MatchConfig, onStart: (MatchConfig) -> Unit) {
         Modifier.fillMaxSize().safeDrawingPadding().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Text("Nový zápas", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("Nový zápas", Modifier.weight(1f), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+            CastButton()
+        }
 
         TeamEditor("Domácí", homeName, { homeName = it }, homeColor, { homeColor = it })
         TeamEditor("Hosté", awayName, { awayName = it }, awayColor, { awayColor = it })

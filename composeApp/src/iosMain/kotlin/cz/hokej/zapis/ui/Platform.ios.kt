@@ -14,3 +14,7 @@ actual fun KeepScreenOn() {
 
 @Composable
 actual fun PlatformBackHandler(onBack: () -> Unit) = Unit
+
+// Google Cast SDK pro iOS se doplní později.
+@Composable
+actual fun CastButton() = Unit

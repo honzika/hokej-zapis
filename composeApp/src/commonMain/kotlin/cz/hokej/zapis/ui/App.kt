@@ -11,6 +11,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewmodel.compose.viewModel
+import cz.hokej.zapis.cast.NoopPublisher
+import cz.hokej.zapis.cast.ScoreboardPublisher
 
 private val IceScheme: ColorScheme = darkColorScheme(
     primary = Color(0xFF4FC3F7),
@@ -22,7 +24,10 @@ private val IceScheme: ColorScheme = darkColorScheme(
 )
 
 @Composable
-fun App(vm: MatchViewModel = viewModel { MatchViewModel() }) {
+fun App(
+    publisher: ScoreboardPublisher = NoopPublisher,
+    vm: MatchViewModel = viewModel { MatchViewModel(publisher) },
+) {
     MaterialTheme(colorScheme = IceScheme) {
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             val screen by vm.screen.collectAsState()
@@ -45,6 +50,10 @@ fun App(vm: MatchViewModel = viewModel { MatchViewModel() }) {
 /** Během zápasu nenechat zhasnout displej. */
 @Composable
 expect fun KeepScreenOn()
+
+/** Tlačítko pro výběr TV (Google Cast). */
+@Composable
+expect fun CastButton()
 
 /** Systémové „zpět“ (Android); na iOS nic nedělá. */
 @Composable

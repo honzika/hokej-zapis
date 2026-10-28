@@ -20,7 +20,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Cast
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material3.AlertDialog
@@ -81,7 +80,7 @@ fun MatchScreen(controller: MatchController, onFinish: () -> Unit) {
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.weight(1f),
             )
-            IconButton(onClick = {}, enabled = false) { Icon(Icons.Default.Cast, "Vysílat na TV (připravuje se)") }
+            CastButton()
             IconButton(onClick = { confirmFinish = true }) { Icon(Icons.Default.Flag, "Ukončit zápas") }
         }
 

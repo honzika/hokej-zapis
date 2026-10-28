@@ -8,6 +8,8 @@ import cz.hokej.zapis.model.Phase
 import cz.hokej.zapis.model.Side
 import cz.hokej.zapis.model.Team
 import cz.hokej.zapis.model.formatClock
+import cz.hokej.zapis.model.GoalMoment
+import cz.hokej.zapis.model.parseClock
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -18,7 +20,7 @@ import kotlin.time.TestTimeSource
 class MatchControllerTest {
     private val time = TestTimeSource()
     private val config = MatchConfig(Team("Lvi", 0xFFD32F2F), Team("Vlci", 0xFF1565C0), periodLengthSec = 60)
-    private val c = MatchController(config, time)
+    private val c = MatchController(config, time, clockTime = { "20:15" })
 
     @Test
     fun clockCountsDownOnlyWhileRunning() {
@@ -84,6 +86,25 @@ class MatchControllerTest {
         time += 8.seconds // vyplňování střelce
         c.addGoal(Side.HOME, "9", at)
         assertEquals(12, c.state.value.goals.single().atSec)
+        assertEquals("20:15", c.state.value.goals.single().clockTime)
+    }
+
+    @Test
+    fun manualGoalTimeIsClampedToPeriod() {
+        c.addGoal(Side.AWAY, null, GoalMoment(1, 500))
+        assertEquals(60, c.state.value.goals.single().atSec)
+    }
+
+    @Test
+    fun parsesManualClock() {
+        assertEquals(83, parseClock("1:23"))
+        assertEquals(83, parseClock("123"))
+        assertEquals(45, parseClock("45"))
+        assertEquals(5, parseClock("5"))
+        assertEquals(600, parseClock("10.00"))
+        assertNull(parseClock("1:75"))
+        assertNull(parseClock("abc"))
+        assertNull(parseClock(""))
     }
 
     @Test

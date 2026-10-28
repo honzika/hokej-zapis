@@ -9,6 +9,10 @@ import cz.hokej.zapis.model.Side
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 import kotlin.time.TimeMark
 import kotlin.time.TimeSource
 
@@ -19,6 +23,7 @@ import kotlin.time.TimeSource
 class MatchController(
     config: MatchConfig,
     private val timeSource: TimeSource = TimeSource.Monotonic,
+    private val clockTime: () -> String = ::localClockTime,
 ) {
     private val _state = MutableStateFlow(MatchState(config))
     val state: StateFlow<MatchState> = _state.asStateFlow()
@@ -82,13 +87,14 @@ class MatchController(
     fun moment(): GoalMoment {
         tick()
         val s = _state.value
-        return GoalMoment(s.period, ((periodMs - s.remainingMs) / 1000).toInt())
+        return GoalMoment(s.period, ((periodMs - s.remainingMs) / 1000).toInt(), clockTime())
     }
 
     fun addGoal(side: Side, scorer: String?, at: GoalMoment = moment()) {
         val s = _state.value
         if (s.phase == Phase.FINISHED) return
-        val goal = GoalEvent(nextGoalId++, side, at.period, at.atSec, scorer?.trim()?.ifEmpty { null })
+        val atSec = at.atSec.coerceIn(0, s.config.periodLengthSec)
+        val goal = GoalEvent(nextGoalId++, side, at.period, atSec, scorer?.trim()?.ifEmpty { null }, at.clockTime)
         _state.value = s.copy(goals = s.goals + goal)
     }
 
@@ -108,4 +114,10 @@ class MatchController(
         runningSince = null
         _state.value = _state.value.copy(phase = Phase.FINISHED)
     }
+}
+
+@OptIn(ExperimentalTime::class)
+fun localClockTime(): String {
+    val t = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+    return "${t.hour}:${t.minute.toString().padStart(2, '0')}"
 }
