@@ -5,6 +5,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import cz.hokej.zapis.cast.CastPublisher
+import cz.hokej.zapis.history.FileTextStore
 import cz.hokej.zapis.ui.App
 
 // AppCompatActivity kvůli MediaRouteButton (dialog výběru TV potřebuje FragmentManager a AppCompat téma).
@@ -13,6 +14,7 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         val publisher = CastPublisher.get(this)
-        setContent { App(publisher) }
+        val history = FileTextStore.history(this)
+        setContent { App(publisher, history) }
     }
 }

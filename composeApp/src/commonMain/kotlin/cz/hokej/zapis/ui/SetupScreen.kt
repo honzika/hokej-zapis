@@ -20,6 +20,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -47,7 +49,7 @@ import cz.hokej.zapis.model.Team
 import cz.hokej.zapis.model.TeamColors
 
 @Composable
-fun SetupScreen(initial: MatchConfig, onStart: (MatchConfig) -> Unit) {
+fun SetupScreen(initial: MatchConfig, onStart: (MatchConfig) -> Unit, onHistory: () -> Unit) {
     var homeName by remember { mutableStateOf(initial.home.name) }
     var homeColor by remember { mutableLongStateOf(initial.home.color) }
     var awayName by remember { mutableStateOf(initial.away.name) }
@@ -60,6 +62,7 @@ fun SetupScreen(initial: MatchConfig, onStart: (MatchConfig) -> Unit) {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("Nový zápas", Modifier.weight(1f), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+            IconButton(onClick = onHistory) { Icon(Icons.Default.History, "Seznam zápasů") }
             CastButton()
         }
 

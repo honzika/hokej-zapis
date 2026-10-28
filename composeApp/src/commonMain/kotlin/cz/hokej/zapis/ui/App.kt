@@ -13,6 +13,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cz.hokej.zapis.cast.NoopPublisher
 import cz.hokej.zapis.cast.ScoreboardPublisher
+import cz.hokej.zapis.history.InMemoryTextStore
+import cz.hokej.zapis.history.MatchHistory
+import cz.hokej.zapis.history.formatDateTime
+import cz.hokej.zapis.history.toState
 
 private val IceScheme: ColorScheme = darkColorScheme(
     primary = Color(0xFF4FC3F7),
@@ -26,7 +30,8 @@ private val IceScheme: ColorScheme = darkColorScheme(
 @Composable
 fun App(
     publisher: ScoreboardPublisher = NoopPublisher,
-    vm: MatchViewModel = viewModel { MatchViewModel(publisher) },
+    history: MatchHistory = MatchHistory(InMemoryTextStore()),
+    vm: MatchViewModel = viewModel { MatchViewModel(publisher, history) },
 ) {
     MaterialTheme(colorScheme = IceScheme) {
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
@@ -41,7 +46,26 @@ fun App(
                     PlatformBackHandler(vm::newMatch)
                     SummaryScreen(controller.state.collectAsState().value, onNewMatch = vm::newMatch)
                 }
-                else -> SetupScreen(vm.lastConfig, onStart = vm::startMatch)
+                screen == Screen.HISTORY -> {
+                    PlatformBackHandler(vm::closeHistory)
+                    HistoryScreen(
+                        matches = vm.history.matches.collectAsState().value,
+                        onOpen = vm::openRecord,
+                        onDelete = vm::deleteRecord,
+                        onBack = vm::closeHistory,
+                    )
+                }
+                screen == Screen.HISTORY_DETAIL && vm.selectedRecord != null -> {
+                    val record = vm.selectedRecord!!
+                    PlatformBackHandler(vm::closeHistory)
+                    SummaryScreen(
+                        state = record.toState(),
+                        title = formatDateTime(record.startedAtMs),
+                        actionLabel = "Zpět na zápasy",
+                        onNewMatch = vm::closeHistory,
+                    )
+                }
+                else -> SetupScreen(vm.lastConfig, onStart = vm::startMatch, onHistory = vm::openHistory)
             }
         }
     }

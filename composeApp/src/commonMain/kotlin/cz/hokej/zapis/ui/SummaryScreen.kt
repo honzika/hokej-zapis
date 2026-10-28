@@ -33,14 +33,19 @@ import cz.hokej.zapis.model.Side
 import cz.hokej.zapis.model.formatSec
 
 @Composable
-fun SummaryScreen(state: MatchState, onNewMatch: () -> Unit) {
+fun SummaryScreen(
+    state: MatchState,
+    onNewMatch: () -> Unit,
+    title: String = "Konec zápasu",
+    actionLabel: String = "Nový zápas",
+) {
     val home = state.config.home
     val away = state.config.away
     Column(
         Modifier.fillMaxSize().safeDrawingPadding().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text("Konec zápasu", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+        Text(title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(home.name, Modifier.weight(1f), textAlign = TextAlign.End, style = MaterialTheme.typography.titleLarge)
             Text(
@@ -68,6 +73,6 @@ fun SummaryScreen(state: MatchState, onNewMatch: () -> Unit) {
             }
         }
         Spacer(Modifier.height(12.dp))
-        Button(onClick = onNewMatch, Modifier.fillMaxWidth().height(56.dp)) { Text("Nový zápas", fontSize = 18.sp) }
+        Button(onClick = onNewMatch, Modifier.fillMaxWidth().height(56.dp)) { Text(actionLabel, fontSize = 18.sp) }
     }
 }

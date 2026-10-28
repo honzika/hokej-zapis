@@ -1,0 +1,35 @@
+Subject: Developer Console – saving application details fails with JS "Error: int64", cannot publish
+
+Hello,
+
+I cannot save any changes to my Custom Receiver application in the Google Cast SDK Developer Console, so I am unable to publish it.
+
+App ID: 0E017B79 (Custom Receiver, "Hokejovy zapis")
+Receiver URL: https://honzika.github.io/hokej-zapis/receiver/index.html
+Developer account: honzikadecin@gmail.com
+
+Steps to reproduce:
+1. Open https://cast.google.com/publish/#/applications/edit/0E017B79
+2. Under Sender Details > Android, enter Package Name "cz.hokej.zapis" (I also tried Chrome > Website URL "https://honzika.github.io/hokej-zapis/")
+3. Click Save
+
+Expected: the sender details are saved and the application can be published.
+
+Actual: the page shows "Saving..." indefinitely, no request is sent to the server, and after reloading the page all sender fields are empty again. Publishing then fails with "You must add details about at least one sender application".
+
+The browser console shows this error on every Save:
+
+  Error: int64
+    at qb (https://www.gstatic.com/_/chromecast/_/js/k=chromecast.devportal.en_US.9GgZfsVO8yA.O/.../m=devportal:46:21)
+    at Kb (...m=devportal:48:35)
+    at Lb (...m=devportal:48:444)
+    at f.setLastPublishedTimestamp (...m=devportal:227:157)
+    at ...m=devportal:390:449
+  Possibly unhandled rejection: {"__closure__error__context__984382":{"severity":"warning"}}
+
+The problem is reproducible in Google Chrome and Brave on macOS, and on two different applications (the previous app 6CE3F8A0 had exactly the same issue and was deleted).
+
+Could you please fix this, or add the Android sender package "cz.hokej.zapis" and publish the application on your side?
+
+Thank you,
+Jan Mucha
