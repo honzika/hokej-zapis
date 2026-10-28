@@ -22,7 +22,9 @@ class CastPublisher private constructor(context: Context) : ScoreboardPublisher 
         override fun onSessionEnded(s: CastSession, error: Int) = detach()
         override fun onSessionSuspended(s: CastSession, reason: Int) = detach()
         override fun onSessionStarting(s: CastSession) = Unit
-        override fun onSessionStartFailed(s: CastSession, error: Int) = Unit
+        override fun onSessionStartFailed(s: CastSession, error: Int) {
+            Log.w(TAG, "Spuštění receiveru na TV selhalo: ${com.google.android.gms.cast.CastStatusCodes.getStatusCodeString(error)}")
+        }
         override fun onSessionEnding(s: CastSession) = Unit
         override fun onSessionResuming(s: CastSession, sessionId: String) = Unit
         override fun onSessionResumeFailed(s: CastSession, error: Int) = Unit
