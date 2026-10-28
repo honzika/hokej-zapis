@@ -43,6 +43,7 @@ class CastPublisher private constructor(context: Context) : ScoreboardPublisher 
     }
 
     private fun attach(s: CastSession) {
+        Log.i(TAG, "Připojeno k ${s.castDevice?.friendlyName}, receiver ${s.applicationMetadata?.applicationId}")
         session = s
         // Nový receiver musí dostat aktuální stav hned, ne až při další změně.
         throttle = newThrottle()
@@ -50,6 +51,7 @@ class CastPublisher private constructor(context: Context) : ScoreboardPublisher 
     }
 
     private fun detach() {
+        Log.i(TAG, "Odpojeno od TV")
         session = null
     }
 
@@ -58,7 +60,8 @@ class CastPublisher private constructor(context: Context) : ScoreboardPublisher 
     private fun send(snapshot: ScoreboardSnapshot) {
         val s = session ?: return
         s.sendMessage(CAST_NAMESPACE, snapshot.toJson()).setResultCallback { status ->
-            if (!status.isSuccess) Log.w(TAG, "Odeslání na TV selhalo: ${status.statusCode} ${status.statusMessage}")
+            if (status.isSuccess) Log.d(TAG, "Odesláno na TV: ${snapshot.home.score}:${snapshot.away.score} ${snapshot.phase}")
+            else Log.w(TAG, "Odeslání na TV selhalo: ${status.statusCode} ${status.statusMessage}")
         }
     }
 
