@@ -96,7 +96,7 @@ private fun MatchCard(m: MatchRecord, onClick: () -> Unit, onDelete: () -> Unit)
         Column(Modifier.padding(start = 16.dp, top = 10.dp, bottom = 12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    "${formatDateTime(m.startedAtMs)} · ${m.periods}× ${m.periodLengthSec / 60} min",
+                    "${m.sport.label} · ${formatDateTime(m.startedAtMs)} · ${m.periods}× ${m.periodLengthSec / 60} min",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.weight(1f),

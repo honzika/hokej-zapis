@@ -7,6 +7,7 @@ import cz.hokej.zapis.cast.ScoreboardPublisher
 import cz.hokej.zapis.cast.toSnapshot
 import cz.hokej.zapis.logic.MatchController
 import cz.hokej.zapis.model.MatchConfig
+import cz.hokej.zapis.model.Side
 import cz.hokej.zapis.model.Team
 import cz.hokej.zapis.model.TeamColors
 import kotlinx.coroutines.Job
@@ -94,6 +95,16 @@ class MatchViewModel(
     }
 
     fun deleteRecord(record: MatchRecord) = history.delete(record.id)
+
+    /** Střelci, kteří už za tým (podle názvu) skórovali – nejčastější první. Uložená je i rozehraný zápas. */
+    fun scorerSuggestions(teamName: String): List<String> =
+        history.matches.value.flatMap { m ->
+            m.goals.filter { g -> (if (g.side == Side.HOME) m.home else m.away).name == teamName }
+                .mapNotNull { it.scorer }
+        }.groupingBy { it }.eachCount().entries
+            .sortedByDescending { it.value }
+            .map { it.key }
+            .take(8)
 
     fun closeHistory() {
         _screen.value = if (_screen.value == Screen.HISTORY_DETAIL) Screen.HISTORY else Screen.SETUP

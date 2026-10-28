@@ -56,6 +56,11 @@
     return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
   }
 
+  function fmtUp(ms) {
+    const s = Math.max(0, Math.floor(ms / 1000));
+    return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  }
+
   function setScore(el, value) {
     if (el.textContent !== String(value)) {
       el.textContent = value;
@@ -81,8 +86,8 @@
     setScore($('awayScore'), s.away.score);
     $('period').textContent =
       s.phase === 'FINISHED' ? 'Konec zápasu' :
-      s.phase === 'PERIOD_END' ? `Konec ${s.period}. třetiny` :
-      `${s.period}. třetina z ${s.periods}`;
+      s.phase === 'PERIOD_END' ? `Konec ${s.period}. ${s.partGen || 'třetiny'}` :
+      `${s.period}. ${s.part || 'třetina'} z ${s.periods}`;
     $('last').innerHTML = s.lastGoal ? 'Poslední gól: <b></b>' : '';
     if (s.lastGoal) $('last').querySelector('b').textContent = s.lastGoal;
   }
@@ -90,8 +95,11 @@
   // Hodiny se mezi zprávami dopočítávají lokálně, telefon nemusí posílat každou desetinu.
   function frame() {
     if (snap) {
-      const ms = snap.running ? snap.remainingMs - (performance.now() - receivedAt) : snap.remainingMs;
-      $('time').textContent = fmt(ms);
+      const ms = Math.max(0, snap.running ? snap.remainingMs - (performance.now() - receivedAt) : snap.remainingMs);
+      // Fotbal: čas zápasu nahoru (2. poločas od 45:00), hokej: odpočet třetiny.
+      $('time').textContent = snap.countUp
+        ? fmtUp((snap.period - 1) * snap.periodLengthMs + snap.periodLengthMs - ms)
+        : fmt(ms);
       $('time').classList.toggle('running', snap.running);
     }
     requestAnimationFrame(frame);

@@ -30,7 +30,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cz.hokej.zapis.model.MatchState
 import cz.hokej.zapis.model.Side
-import cz.hokej.zapis.model.formatSec
 
 @Composable
 fun SummaryScreen(
@@ -59,7 +58,7 @@ fun SummaryScreen(
         val byPeriod = (1..state.config.periods).joinToString(", ") { p ->
             "${state.goals.count { it.period == p && it.side == Side.HOME }}:${state.goals.count { it.period == p && it.side == Side.AWAY }}"
         }
-        Text("Třetiny ($byPeriod)", Modifier.fillMaxWidth(), textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text("${state.config.sport.partsPlural.replaceFirstChar { it.uppercase() }} ($byPeriod)", Modifier.fillMaxWidth(), textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
         Text("Góly", style = MaterialTheme.typography.titleMedium)
         if (state.goals.isEmpty()) Text("Žádné góly", color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -68,7 +67,7 @@ fun SummaryScreen(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(Modifier.size(12.dp).clip(RoundedCornerShape(6.dp)).background(Color(team.color)))
                 Spacer(Modifier.width(10.dp))
-                Text("${g.period}. tř. ${formatSec(g.atSec)}", Modifier.width(100.dp), style = TabularNums, maxLines = 1)
+                Text(state.config.goalTime(g.period, g.atSec), Modifier.width(100.dp), style = TabularNums, maxLines = 1)
                 Text(listOfNotNull(team.name, g.scorer).joinToString(" – "))
             }
         }

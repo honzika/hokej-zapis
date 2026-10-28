@@ -40,7 +40,7 @@ fun App(
             when {
                 screen == Screen.MATCH && controller != null -> {
                     KeepScreenOn()
-                    MatchScreen(controller, onFinish = vm::finishMatch)
+                    MatchScreen(controller, onFinish = vm::finishMatch, scorerSuggestions = vm::scorerSuggestions)
                 }
                 screen == Screen.SUMMARY && controller != null -> {
                     PlatformBackHandler(vm::newMatch)

@@ -41,6 +41,9 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.material3.AssistChip
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -62,11 +65,13 @@ import cz.hokej.zapis.model.GoalMoment
 import cz.hokej.zapis.model.MatchState
 import cz.hokej.zapis.model.Phase
 import cz.hokej.zapis.model.Side
-import cz.hokej.zapis.model.formatClock
-import cz.hokej.zapis.model.formatSec
 
 @Composable
-fun MatchScreen(controller: MatchController, onFinish: () -> Unit) {
+fun MatchScreen(
+    controller: MatchController,
+    onFinish: () -> Unit,
+    scorerSuggestions: (teamName: String) -> List<String> = { emptyList() },
+) {
     val state by controller.state.collectAsState()
     var goalFor by remember { mutableStateOf<Pair<Side, GoalMoment>?>(null) }
     var confirmFinish by remember { mutableStateOf(false) }
@@ -76,7 +81,7 @@ fun MatchScreen(controller: MatchController, onFinish: () -> Unit) {
     Column(Modifier.fillMaxSize().safeDrawingPadding().padding(horizontal = 16.dp)) {
         Row(Modifier.fillMaxWidth().height(56.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(
-                "${state.period}. třetina z ${state.config.periods}",
+                "${state.period}. ${state.config.sport.part} z ${state.config.periods}",
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.weight(1f),
             )
@@ -114,7 +119,8 @@ fun MatchScreen(controller: MatchController, onFinish: () -> Unit) {
 
     goalFor?.let { (side, at) ->
         ScorerDialog(
-            title = "Gól – ${state.config.team(side).name} (${at.period}. tř. ${formatSec(at.atSec)})",
+            title = "Gól – ${state.config.team(side).name} (${state.config.goalTime(at.period, at.atSec)})",
+            suggestions = remember(side) { scorerSuggestions(state.config.team(side).name) },
             onConfirm = { scorer -> controller.addGoal(side, scorer, at); goalFor = null },
             onDismiss = { goalFor = null },
         )
@@ -146,7 +152,7 @@ private fun PeriodAction(state: MatchState, onNextPeriod: () -> Unit, onFinish: 
         onClick = if (state.isLastPeriod) onFinish else onNextPeriod,
         modifier = Modifier.fillMaxWidth().padding(top = 12.dp).height(52.dp),
     ) {
-        Text(if (state.isLastPeriod) "Konec zápasu" else "Začít ${state.period + 1}. třetinu", fontSize = 17.sp)
+        Text(if (state.isLastPeriod) "Konec zápasu" else "Začít ${state.period + 1}. ${state.config.sport.partAcc}", fontSize = 17.sp)
     }
 }
 
@@ -217,7 +223,7 @@ private fun Clock(state: MatchState, onToggle: () -> Unit, onAdjust: (Int) -> Un
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    formatClock(state.remainingMs),
+                    state.clockText,
                     fontSize = clockSize,
                     fontWeight = FontWeight.Bold,
                     style = TabularNums,
@@ -228,7 +234,7 @@ private fun Clock(state: MatchState, onToggle: () -> Unit, onAdjust: (Int) -> Un
                         Phase.READY -> "Klepnutím spustíš čas"
                         Phase.RUNNING -> "Běží – klepnutím zastavíš"
                         Phase.PAUSED -> "Zastaveno – klepnutím spustíš"
-                        Phase.PERIOD_END -> "Konec třetiny"
+                        Phase.PERIOD_END -> "Konec ${state.config.sport.partGen}"
                         Phase.FINISHED -> "Konec zápasu"
                     },
                     style = MaterialTheme.typography.bodyMedium,
@@ -255,7 +261,7 @@ private fun GoalRow(state: MatchState, goal: GoalEvent, onDelete: () -> Unit) {
         Box(Modifier.size(12.dp).clip(RoundedCornerShape(6.dp)).background(Color(team.color)))
         Spacer(Modifier.width(10.dp))
         Text(
-            "${goal.period}. tř. ${formatSec(goal.atSec)}",
+            state.config.goalTime(goal.period, goal.atSec),
             Modifier.width(100.dp),
             style = TabularNums,
             maxLines = 1,
@@ -272,11 +278,11 @@ private fun GoalRow(state: MatchState, goal: GoalEvent, onDelete: () -> Unit) {
 }
 
 private fun goalLabel(state: MatchState, goal: GoalEvent) =
-    listOfNotNull(state.config.team(goal.side).name, goal.scorer, "${goal.period}. tř. ${formatSec(goal.atSec)}")
+    listOfNotNull(state.config.team(goal.side).name, goal.scorer, state.config.goalTime(goal.period, goal.atSec))
         .joinToString(" · ")
 
 @Composable
-private fun ScorerDialog(title: String, onConfirm: (String?) -> Unit, onDismiss: () -> Unit) {
+private fun ScorerDialog(title: String, suggestions: List<String>, onConfirm: (String?) -> Unit, onDismiss: () -> Unit) {
     var scorer by remember { mutableStateOf("") }
     val focus = remember { FocusRequester() }
     LaunchedEffect(Unit) { focus.requestFocus() }
@@ -284,15 +290,25 @@ private fun ScorerDialog(title: String, onConfirm: (String?) -> Unit, onDismiss:
         onDismissRequest = onDismiss,
         title = { Text(title) },
         text = {
-            OutlinedTextField(
-                value = scorer,
-                onValueChange = { scorer = it.take(30) },
-                label = { Text("Střelec (číslo nebo jméno)") },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(onDone = { onConfirm(scorer) }),
-                modifier = Modifier.focusRequester(focus),
-            )
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (suggestions.isNotEmpty()) {
+                    // Jedním klepnutím zapsat gól známého hráče.
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        suggestions.forEach { name ->
+                            AssistChip(onClick = { onConfirm(name) }, label = { Text(name) })
+                        }
+                    }
+                }
+                OutlinedTextField(
+                    value = scorer,
+                    onValueChange = { scorer = it.take(30) },
+                    label = { Text("Střelec (číslo nebo jméno)") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words, imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = { onConfirm(scorer) }),
+                    modifier = Modifier.focusRequester(focus),
+                )
+            }
         },
         confirmButton = { TextButton(onClick = { onConfirm(scorer) }) { Text("Uložit") } },
         dismissButton = {

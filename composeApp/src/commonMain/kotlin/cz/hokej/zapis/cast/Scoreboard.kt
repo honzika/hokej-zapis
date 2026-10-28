@@ -3,7 +3,6 @@ package cz.hokej.zapis.cast
 import cz.hokej.zapis.model.MatchState
 import cz.hokej.zapis.model.Phase
 import cz.hokej.zapis.model.Side
-import cz.hokej.zapis.model.formatSec
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
@@ -20,6 +19,10 @@ data class ScoreboardSnapshot(
     val running: Boolean,
     val phase: String,
     val lastGoal: String? = null,
+    val part: String = "třetina",
+    val partGen: String = "třetiny",
+    val countUp: Boolean = false,
+    val periodLengthMs: Long = 0,
 )
 
 @Serializable
@@ -30,7 +33,7 @@ fun MatchState.toSnapshot(): ScoreboardSnapshot {
         TeamSnapshot(it.name, it.color.toCssColor(), score(side), it.logo?.dataUrl)
     }
     val last = goals.lastOrNull()?.let { g ->
-        listOfNotNull(config.team(g.side).name, g.scorer, "${g.period}. tř. ${formatSec(g.atSec)}")
+        listOfNotNull(config.team(g.side).name, g.scorer, config.goalTime(g.period, g.atSec))
             .joinToString(" · ")
     }
     return ScoreboardSnapshot(
@@ -42,6 +45,10 @@ fun MatchState.toSnapshot(): ScoreboardSnapshot {
         running = phase == Phase.RUNNING,
         phase = phase.name,
         lastGoal = last,
+        part = config.sport.part,
+        partGen = config.sport.partGen,
+        countUp = config.sport.countUp,
+        periodLengthMs = config.periodLengthSec * 1000L,
     )
 }
 

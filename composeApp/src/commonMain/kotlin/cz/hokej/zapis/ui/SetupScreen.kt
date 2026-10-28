@@ -45,6 +45,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cz.hokej.zapis.model.MatchConfig
+import cz.hokej.zapis.model.Sport
+import androidx.compose.material3.FilterChip
 import cz.hokej.zapis.model.Team
 import cz.hokej.zapis.model.TeamColors
 
@@ -55,6 +57,7 @@ fun SetupScreen(initial: MatchConfig, onStart: (MatchConfig) -> Unit, onHistory:
     var awayName by remember { mutableStateOf(initial.away.name) }
     var awayColor by remember { mutableLongStateOf(initial.away.color) }
     var minutes by remember { mutableIntStateOf(initial.periodLengthSec / 60) }
+    var sport by remember { mutableStateOf(initial.sport) }
 
     Column(
         Modifier.fillMaxSize().safeDrawingPadding().verticalScroll(rememberScrollState()).padding(16.dp),
@@ -66,14 +69,29 @@ fun SetupScreen(initial: MatchConfig, onStart: (MatchConfig) -> Unit, onHistory:
             CastButton()
         }
 
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Sport.entries.forEach { s ->
+                FilterChip(
+                    selected = s == sport,
+                    onClick = {
+                        if (s != sport) {
+                            sport = s
+                            minutes = s.defaultMinutes
+                        }
+                    },
+                    label = { Text(s.label, fontSize = 16.sp) },
+                )
+            }
+        }
+
         TeamEditor("Domácí", homeName, { homeName = it }, homeColor, { homeColor = it })
         TeamEditor("Hosté", awayName, { awayName = it }, awayColor, { awayColor = it })
 
         Card(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp)) {
-                Text("Délka třetiny", style = MaterialTheme.typography.titleMedium)
+                Text("Délka ${sport.partGen}", style = MaterialTheme.typography.titleMedium)
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    FilledTonalIconButton(onClick = { minutes = (minutes - 1).coerceAtLeast(1) }) {
+                    FilledTonalIconButton(onClick = { minutes = (minutes - if (minutes > 10) 5 else 1).coerceAtLeast(1) }) {
                         Icon(Icons.Default.Remove, "Ubrat minutu")
                     }
                     Text(
@@ -83,11 +101,11 @@ fun SetupScreen(initial: MatchConfig, onStart: (MatchConfig) -> Unit, onHistory:
                         fontWeight = FontWeight.Bold,
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                     )
-                    FilledTonalIconButton(onClick = { minutes = (minutes + 1).coerceAtMost(20) }) {
+                    FilledTonalIconButton(onClick = { minutes = (minutes + if (minutes >= 10) 5 else 1).coerceAtMost(sport.maxMinutes) }) {
                         Icon(Icons.Default.Add, "Přidat minutu")
                     }
                 }
-                Text("3 třetiny", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("${sport.periods} ${sport.partsPlural}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
 
@@ -99,6 +117,7 @@ fun SetupScreen(initial: MatchConfig, onStart: (MatchConfig) -> Unit, onHistory:
                         home = Team(homeName.trim().ifEmpty { "Domácí" }, homeColor),
                         away = Team(awayName.trim().ifEmpty { "Hosté" }, awayColor),
                         periodLengthSec = minutes * 60,
+                        sport = sport,
                     )
                 )
             },

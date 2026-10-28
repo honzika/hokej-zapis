@@ -5,6 +5,7 @@ import cz.hokej.zapis.model.MatchConfig
 import cz.hokej.zapis.model.MatchState
 import cz.hokej.zapis.model.Phase
 import cz.hokej.zapis.model.Side
+import cz.hokej.zapis.model.Sport
 import cz.hokej.zapis.model.Team
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -28,6 +29,7 @@ data class MatchRecord(
     val periodLengthSec: Int,
     val periods: Int,
     val goals: List<GoalRecord>,
+    val sport: Sport = Sport.HOCKEY,
 ) {
     fun score(side: Side) = goals.count { it.side == side }
 }
@@ -53,6 +55,7 @@ fun MatchState.toRecord(id: String, startedAtMs: Long) = MatchRecord(
     periodLengthSec = config.periodLengthSec,
     periods = config.periods,
     goals = goals.map { GoalRecord(it.side, it.period, it.atSec, it.scorer, it.clockTime) },
+    sport = config.sport,
 )
 
 /** Pro zobrazení detailu stejnou obrazovkou jako souhrn po zápase. */
@@ -61,6 +64,7 @@ fun MatchRecord.toState() = MatchState(
         home = Team(home.name, home.color),
         away = Team(away.name, away.color),
         periodLengthSec = periodLengthSec,
+        sport = sport,
         periods = periods,
     ),
     period = goals.maxOfOrNull { it.period } ?: 1,

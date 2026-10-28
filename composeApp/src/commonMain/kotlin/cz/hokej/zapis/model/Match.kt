@@ -14,12 +14,36 @@ class Logo(val bytes: ByteArray, val mimeType: String) {
     val dataUrl: String by lazy { "data:$mimeType;base64," + Base64.encode(bytes) }
 }
 
+/** Pravidla a texty podle sportu (čeština potřebuje i pády). */
+enum class Sport(
+    val label: String,
+    val periods: Int,
+    val defaultMinutes: Int,
+    val maxMinutes: Int,
+    /** Fotbal: čas běží nahoru přes celý zápas (2. poločas od 45:00). Hokej odpočítává třetinu. */
+    val countUp: Boolean,
+    val part: String,
+    val partAcc: String,
+    val partGen: String,
+    val partShort: String,
+    val partsPlural: String,
+) {
+    HOCKEY("Hokej", 3, 10, 20, false, "třetina", "třetinu", "třetiny", "tř.", "třetiny"),
+    FOOTBALL("Fotbal", 2, 45, 45, true, "poločas", "poločas", "poločasu", "pol.", "poločasy"),
+}
+
 data class MatchConfig(
     val home: Team,
     val away: Team,
     val periodLengthSec: Int,
-    val periods: Int = 3,
+    val sport: Sport = Sport.HOCKEY,
+    val periods: Int = sport.periods,
 ) {
+    /** Čas gólu: hokej „2. tř. 3:15“, fotbal minuta zápasu „53'“. */
+    fun goalTime(period: Int, atSec: Int): String =
+        if (sport.countUp) "${(period - 1) * periodLengthSec / 60 + atSec / 60 + 1}'"
+        else "$period. ${sport.partShort} ${formatSec(atSec)}"
+
     fun team(side: Side) = if (side == Side.HOME) home else away
 }
 
@@ -48,6 +72,13 @@ data class MatchState(
 ) {
     fun score(side: Side) = goals.count { it.side == side }
     val isLastPeriod get() = period >= config.periods
+
+    /** Co ukazují hodiny – podle sportu odpočet třetiny, nebo čas zápasu nahoru. */
+    val clockText: String
+        get() = if (config.sport.countUp) {
+            val lenMs = config.periodLengthSec * 1000L
+            formatSec((((period - 1) * lenMs + lenMs - remainingMs) / 1000).toInt())
+        } else formatClock(remainingMs)
 }
 
 val TeamColors: List<Long> = listOf(
