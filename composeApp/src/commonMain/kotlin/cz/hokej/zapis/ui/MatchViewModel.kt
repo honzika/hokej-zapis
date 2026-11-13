@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import cz.hokej.zapis.history.InMemoryTextStore
+import cz.hokej.zapis.history.LogoLibrary
 import cz.hokej.zapis.history.MatchHistory
 import cz.hokej.zapis.history.MatchRecord
 import cz.hokej.zapis.history.toRecord
@@ -31,6 +32,7 @@ enum class Screen { SETUP, MATCH, SUMMARY, HISTORY, HISTORY_DETAIL }
 class MatchViewModel(
     private val publisher: ScoreboardPublisher = NoopPublisher,
     val history: MatchHistory = MatchHistory(InMemoryTextStore()),
+    val logos: LogoLibrary = LogoLibrary(InMemoryTextStore()),
 ) : ViewModel() {
     private val _screen = MutableStateFlow(Screen.SETUP)
     val screen: StateFlow<Screen> = _screen.asStateFlow()

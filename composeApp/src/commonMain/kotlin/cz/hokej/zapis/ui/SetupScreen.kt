@@ -44,6 +44,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import cz.hokej.zapis.model.Logo
 import cz.hokej.zapis.model.MatchConfig
 import cz.hokej.zapis.model.Sport
 import androidx.compose.material3.FilterChip
@@ -51,10 +52,18 @@ import cz.hokej.zapis.model.Team
 import cz.hokej.zapis.model.TeamColors
 
 @Composable
-fun SetupScreen(initial: MatchConfig, onStart: (MatchConfig) -> Unit, onHistory: () -> Unit) {
+fun SetupScreen(
+    initial: MatchConfig,
+    onStart: (MatchConfig) -> Unit,
+    onHistory: () -> Unit,
+    logoFor: (String) -> Logo? = { null },
+    onLogoChange: (String, Logo?) -> Unit = { _, _ -> },
+) {
     var homeName by remember { mutableStateOf(initial.home.name) }
     var homeColor by remember { mutableLongStateOf(initial.home.color) }
+    var homeLogo by remember { mutableStateOf(initial.home.logo ?: logoFor(initial.home.name)) }
     var awayName by remember { mutableStateOf(initial.away.name) }
+    var awayLogo by remember { mutableStateOf(initial.away.logo ?: logoFor(initial.away.name)) }
     var awayColor by remember { mutableLongStateOf(initial.away.color) }
     var minutes by remember { mutableIntStateOf(initial.periodLengthSec / 60) }
     var sport by remember { mutableStateOf(initial.sport) }
@@ -84,8 +93,15 @@ fun SetupScreen(initial: MatchConfig, onStart: (MatchConfig) -> Unit, onHistory:
             }
         }
 
-        TeamEditor("Domácí", homeName, { homeName = it }, homeColor, { homeColor = it })
-        TeamEditor("Hosté", awayName, { awayName = it }, awayColor, { awayColor = it })
+        // Logo patří k názvu týmu: po přepsání názvu se doplní uložené logo daného týmu.
+        TeamEditor(
+            "Domácí", homeName, { homeName = it; homeLogo = logoFor(it) }, homeColor, { homeColor = it },
+            homeLogo, { homeLogo = it; onLogoChange(homeName, it) },
+        )
+        TeamEditor(
+            "Hosté", awayName, { awayName = it; awayLogo = logoFor(it) }, awayColor, { awayColor = it },
+            awayLogo, { awayLogo = it; onLogoChange(awayName, it) },
+        )
 
         Card(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp)) {
@@ -114,8 +130,8 @@ fun SetupScreen(initial: MatchConfig, onStart: (MatchConfig) -> Unit, onHistory:
             onClick = {
                 onStart(
                     MatchConfig(
-                        home = Team(homeName.trim().ifEmpty { "Domácí" }, homeColor),
-                        away = Team(awayName.trim().ifEmpty { "Hosté" }, awayColor),
+                        home = Team(homeName.trim().ifEmpty { "Domácí" }, homeColor, homeLogo),
+                        away = Team(awayName.trim().ifEmpty { "Hosté" }, awayColor, awayLogo),
                         periodLengthSec = minutes * 60,
                         sport = sport,
                     )
@@ -133,16 +149,22 @@ private fun TeamEditor(
     onName: (String) -> Unit,
     color: Long,
     onColor: (Long) -> Unit,
+    logo: Logo?,
+    onLogo: (Logo?) -> Unit,
 ) {
+    val pickLogo = rememberLogoPicker { onLogo(it) }
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            OutlinedTextField(
-                value = name,
-                onValueChange = { onName(it.take(24)) },
-                label = { Text(label) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                LogoSlot(logo, pickLogo, onRemove = { onLogo(null) })
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { onName(it.take(24)) },
+                    label = { Text(label) },
+                    singleLine = true,
+                    modifier = Modifier.weight(1f),
+                )
+            }
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 TeamColors.forEach { c ->
                     val selected = c == color

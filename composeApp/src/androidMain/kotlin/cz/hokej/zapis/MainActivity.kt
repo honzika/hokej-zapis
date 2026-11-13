@@ -15,6 +15,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         val publisher = CastPublisher.get(this)
         val history = FileTextStore.history(this)
-        setContent { App(publisher, history) }
+        val logos = FileTextStore.logos(this)
+        setContent { App(publisher, history, logos) }
     }
 }

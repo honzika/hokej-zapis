@@ -1,6 +1,7 @@
 package cz.hokej.zapis.history
 
 import cz.hokej.zapis.model.GoalEvent
+import cz.hokej.zapis.model.Logo
 import cz.hokej.zapis.model.MatchConfig
 import cz.hokej.zapis.model.MatchState
 import cz.hokej.zapis.model.Phase
@@ -58,11 +59,11 @@ fun MatchState.toRecord(id: String, startedAtMs: Long) = MatchRecord(
     sport = config.sport,
 )
 
-/** Pro zobrazení detailu stejnou obrazovkou jako souhrn po zápase. */
-fun MatchRecord.toState() = MatchState(
+/** Pro zobrazení detailu stejnou obrazovkou jako souhrn po zápase. Loga se doplní z [LogoLibrary]. */
+fun MatchRecord.toState(logoFor: (String) -> Logo? = { null }) = MatchState(
     config = MatchConfig(
-        home = Team(home.name, home.color),
-        away = Team(away.name, away.color),
+        home = Team(home.name, home.color, logoFor(home.name)),
+        away = Team(away.name, away.color, logoFor(away.name)),
         periodLengthSec = periodLengthSec,
         sport = sport,
         periods = periods,

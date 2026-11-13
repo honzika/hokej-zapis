@@ -14,6 +14,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import cz.hokej.zapis.cast.NoopPublisher
 import cz.hokej.zapis.cast.ScoreboardPublisher
 import cz.hokej.zapis.history.InMemoryTextStore
+import cz.hokej.zapis.history.LogoLibrary
 import cz.hokej.zapis.history.MatchHistory
 import cz.hokej.zapis.history.formatDateTime
 import cz.hokej.zapis.history.toState
@@ -31,7 +32,8 @@ private val IceScheme: ColorScheme = darkColorScheme(
 fun App(
     publisher: ScoreboardPublisher = NoopPublisher,
     history: MatchHistory = MatchHistory(InMemoryTextStore()),
-    vm: MatchViewModel = viewModel { MatchViewModel(publisher, history) },
+    logos: LogoLibrary = LogoLibrary(InMemoryTextStore()),
+    vm: MatchViewModel = viewModel { MatchViewModel(publisher, history, logos) },
 ) {
     MaterialTheme(colorScheme = IceScheme) {
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
@@ -52,6 +54,7 @@ fun App(
                         matches = vm.history.matches.collectAsState().value,
                         onOpen = vm::openRecord,
                         onDelete = vm::deleteRecord,
+                        logoFor = vm.logos::get,
                         onBack = vm::closeHistory,
                     )
                 }
@@ -59,13 +62,19 @@ fun App(
                     val record = vm.selectedRecord!!
                     PlatformBackHandler(vm::closeHistory)
                     SummaryScreen(
-                        state = record.toState(),
+                        state = record.toState(vm.logos::get),
                         title = formatDateTime(record.startedAtMs),
                         actionLabel = "Zpět na zápasy",
                         onNewMatch = vm::closeHistory,
                     )
                 }
-                else -> SetupScreen(vm.lastConfig, onStart = vm::startMatch, onHistory = vm::openHistory)
+                else -> SetupScreen(
+                    vm.lastConfig,
+                    onStart = vm::startMatch,
+                    onHistory = vm::openHistory,
+                    logoFor = vm.logos::get,
+                    onLogoChange = vm.logos::put,
+                )
             }
         }
     }

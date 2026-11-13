@@ -186,13 +186,19 @@ private fun TeamPanel(state: MatchState, side: Side, modifier: Modifier, onGoal:
         verticalArrangement = Arrangement.SpaceBetween,
     ) {
         Box(Modifier.fillMaxWidth().height(8.dp).background(color))
-        Text(
-            team.name,
+        Row(
             Modifier.padding(top = 10.dp, start = 8.dp, end = 8.dp),
-            style = MaterialTheme.typography.titleMedium,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            TeamLogo(team.logo, 32.dp)
+            Text(
+                team.name,
+                style = MaterialTheme.typography.titleMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
         Text(
             state.score(side).toString(),
             fontSize = 84.sp,

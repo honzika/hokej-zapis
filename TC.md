@@ -23,4 +23,9 @@ Ověřeno na Android emulátoru (Medium Phone API 36.1) 27. 10. 2026. iOS zatím
 | 17 | Cast na Google TV | Ikona Cast → „Televize v obýváku“, spustit zápas, dát góly | TV ukáže receiver „Hokejovy zapis“, skóre a běžící čas; log `CastPublisher` hlásí odeslání každé změny | OK (Chromecast s Google TV, publikovaná app 0E017B79) |
 | 18 | Historie zápasů | Ikona Historie v nastavení; rozkliknout zápas; smazat | Seznam od nejnovějšího, skóre po částech, nedokončené označené; smazání s potvrzením | OK |
 | 19 | Fotbal | Zvolit „Fotbal“, začít zápas, dát gól | 2 poločasy po 45 min, čas běží nahoru, gól s minutou (např. 1'); chip naposledy použitého střelce | OK |
-| 20 | Unit testy (aktuální) | `./gradlew :composeApp:testDebugUnitTest` | 19/19 zelené | OK |
+| 20 | Unit testy (aktuální) | `./gradlew :composeApp:testDebugUnitTest` | 22/22 zelené | OK |
+| 21 | Výběr loga | V nastavení klepnout na políčko vedle názvu, vybrat obrázek | Systémový výběr fotek; logo se zobrazí v políčku s křížkem, průhlednost zůstane | OK (emulátor) |
+| 22 | Logo podle názvu | Tým „Lvi“ s logem přepsat na „Lvix“ a zpět | U „Lvix“ logo zmizí, u „Lvi“ se samo vrátí (i po restartu appky) | OK |
+| 23 | Odebrání loga | Křížek u loga | Logo zmizí a už se k názvu nedoplní (vymaže se z logos.json) | OK |
+| 24 | Logo v zápase | Začít zápas s logy, na výšku i na šířku | Logo vedle názvu týmu, v souhrnu nad názvem, v seznamu zápasů u názvu | OK |
+| 25 | Logo na TV | Zápas s logy odeslat na TV | Receiver ukáže loga u názvů; zpráva s oběma logy ~11 kB (limit Cast 64 kB) | OK (receiver v prohlížeči s logy z telefonu), na TV neověřeno |

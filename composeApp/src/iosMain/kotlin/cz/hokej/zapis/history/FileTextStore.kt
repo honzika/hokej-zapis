@@ -24,5 +24,10 @@ class FileTextStore(private val path: String) : TextStore {
             val dir = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, true).first() as String
             MatchHistory(FileTextStore("$dir/matches.json"))
         }
+
+        val logos: LogoLibrary by lazy {
+            val dir = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, true).first() as String
+            LogoLibrary(FileTextStore("$dir/logos.json"))
+        }
     }
 }

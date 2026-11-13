@@ -21,5 +21,13 @@ class FileTextStore(private val file: File) : TextStore {
             history ?: synchronized(this) {
                 history ?: MatchHistory(FileTextStore(File(context.filesDir, "matches.json"))).also { history = it }
             }
+
+        @Volatile
+        private var logos: LogoLibrary? = null
+
+        fun logos(context: Context): LogoLibrary =
+            logos ?: synchronized(this) {
+                logos ?: LogoLibrary(FileTextStore(File(context.filesDir, "logos.json"))).also { logos = it }
+            }
     }
 }

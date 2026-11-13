@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.sp
 import cz.hokej.zapis.history.MatchRecord
 import cz.hokej.zapis.history.TeamRecord
 import cz.hokej.zapis.history.formatDateTime
+import cz.hokej.zapis.model.Logo
 import cz.hokej.zapis.model.Side
 
 @Composable
@@ -52,6 +53,7 @@ fun HistoryScreen(
     onOpen: (MatchRecord) -> Unit,
     onDelete: (MatchRecord) -> Unit,
     onBack: () -> Unit,
+    logoFor: (String) -> Logo? = { null },
 ) {
     var toDelete by remember { mutableStateOf<MatchRecord?>(null) }
 
@@ -74,7 +76,7 @@ fun HistoryScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             items(matches, key = { it.id }) { m ->
-                MatchCard(m, onClick = { onOpen(m) }, onDelete = { toDelete = m })
+                MatchCard(m, logoFor, onClick = { onOpen(m) }, onDelete = { toDelete = m })
             }
         }
     }
@@ -91,7 +93,7 @@ fun HistoryScreen(
 }
 
 @Composable
-private fun MatchCard(m: MatchRecord, onClick: () -> Unit, onDelete: () -> Unit) {
+private fun MatchCard(m: MatchRecord, logoFor: (String) -> Logo?, onClick: () -> Unit, onDelete: () -> Unit) {
     Card(Modifier.fillMaxWidth().clickable(onClick = onClick)) {
         Column(Modifier.padding(start = 16.dp, top = 10.dp, bottom = 12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -111,7 +113,7 @@ private fun MatchCard(m: MatchRecord, onClick: () -> Unit, onDelete: () -> Unit)
                 IconButton(onClick = onDelete) { Icon(Icons.Default.Delete, "Smazat zápas") }
             }
             Row(Modifier.padding(end = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-                TeamName(m.home, Modifier.weight(1f), TextAlign.End)
+                TeamName(m.home, logoFor(m.home.name), Modifier.weight(1f), TextAlign.End)
                 Text(
                     "${m.score(Side.HOME)} : ${m.score(Side.AWAY)}",
                     Modifier.padding(horizontal = 12.dp),
@@ -119,7 +121,7 @@ private fun MatchCard(m: MatchRecord, onClick: () -> Unit, onDelete: () -> Unit)
                     fontWeight = FontWeight.Black,
                     style = TabularNums,
                 )
-                TeamName(m.away, Modifier.weight(1f), TextAlign.Start)
+                TeamName(m.away, logoFor(m.away.name), Modifier.weight(1f), TextAlign.Start)
             }
             val byPeriod = (1..m.periods).joinToString(", ") { p ->
                 "${m.goals.count { it.period == p && it.side == Side.HOME }}:${m.goals.count { it.period == p && it.side == Side.AWAY }}"
@@ -136,9 +138,12 @@ private fun MatchCard(m: MatchRecord, onClick: () -> Unit, onDelete: () -> Unit)
 }
 
 @Composable
-private fun TeamName(team: TeamRecord, modifier: Modifier, align: TextAlign) {
+private fun TeamName(team: TeamRecord, logo: Logo?, modifier: Modifier, align: TextAlign) {
     Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = if (align == TextAlign.End) Arrangement.End else Arrangement.Start) {
-        if (align == TextAlign.Start) ColorDot(team.color)
+        if (align == TextAlign.Start) {
+            ColorDot(team.color)
+            TeamLogo(logo, 22.dp, Modifier.padding(start = 6.dp))
+        }
         Text(
             team.name,
             Modifier.padding(horizontal = 6.dp),
@@ -146,7 +151,10 @@ private fun TeamName(team: TeamRecord, modifier: Modifier, align: TextAlign) {
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
-        if (align == TextAlign.End) ColorDot(team.color)
+        if (align == TextAlign.End) {
+            TeamLogo(logo, 22.dp, Modifier.padding(end = 6.dp))
+            ColorDot(team.color)
+        }
     }
 }
 

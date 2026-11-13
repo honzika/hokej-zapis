@@ -46,14 +46,20 @@ fun SummaryScreen(
     ) {
         Text(title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text(home.name, Modifier.weight(1f), textAlign = TextAlign.End, style = MaterialTheme.typography.titleLarge)
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.End) {
+                TeamLogo(home.logo, 48.dp)
+                Text(home.name, textAlign = TextAlign.End, style = MaterialTheme.typography.titleLarge)
+            }
             Text(
                 "${state.score(Side.HOME)} : ${state.score(Side.AWAY)}",
                 Modifier.padding(horizontal = 16.dp),
                 fontSize = 48.sp,
                 fontWeight = FontWeight.Black,
             )
-            Text(away.name, Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
+            Column(Modifier.weight(1f)) {
+                TeamLogo(away.logo, 48.dp)
+                Text(away.name, style = MaterialTheme.typography.titleLarge)
+            }
         }
         val byPeriod = (1..state.config.periods).joinToString(", ") { p ->
             "${state.goals.count { it.period == p && it.side == Side.HOME }}:${state.goals.count { it.period == p && it.side == Side.AWAY }}"
